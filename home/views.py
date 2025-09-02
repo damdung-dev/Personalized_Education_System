@@ -13,6 +13,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from llama_cpp import Llama
+from django.contrib import messages
 import calendar
 import json
 
@@ -101,6 +102,24 @@ def account_view(request):
     try:
         user = StudentsAccount.objects.get(email=email)
         approved = True
+
+        if request.method == "POST":
+            user.first_name = request.POST.get("first_name", user.first_name)
+            user.student_id = request.POST.get("student_id", user.student_id)
+            user.account_type = request.POST.get("account_type", user.account_type)
+            user.phone = request.POST.get("phone", user.phone)
+            dob = request.POST.get("dob")
+            if dob:
+                try:
+                    user.birthday = datetime.strptime(dob, "%Y-%m-%d").date()
+                except ValueError:
+                    messages.error(request, "Ngày sinh không hợp lệ.")
+            user.job = request.POST.get("career", user.job)
+            user.other = request.POST.get("other", user.other)
+
+            user.save()
+            messages.success(request, "Cập nhật thông tin thành công!")
+
     except StudentsAccount.DoesNotExist:
         try:
             user = Student.objects.get(email=email)

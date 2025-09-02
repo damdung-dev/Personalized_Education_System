@@ -1,85 +1,188 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Documents{% endblock %}
+{% block title %}Thư viện sách{% endblock %}
 
 {% block style %}
 <style>
-:root{
-  --primary-color:#007aff;
-  --success-color:#28a745;
-  --danger-color:#ff3b30;
-  --card-bg:rgba(255,255,255,0.85);
-  --card-shadow: rgba(0,0,0,0.15);
-  --border-radius:20px;
-  --transition-speed:0.3s;
+:root {
+  --primary: #007aff;
+  --secondary: #00cfff;
+  --danger: #ff3b30;
+  --bg-card: #fff;
+  --shadow: rgba(0,0,0,0.12);
+  --radius: 14px;
+  --speed: 0.3s ease;
 }
 
-/* Container */
-.container{ max-width:1100px; margin:40px auto; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
+body { background: #f7f9fb; margin: 0; }
 
-/* Cards */
-.card{ background:var(--card-bg); backdrop-filter: blur(14px); border-radius:var(--border-radius); box-shadow:0 12px 28px var(--card-shadow); padding:24px; margin-bottom:32px; transition: all var(--transition-speed); }
-.card:hover{ transform: translateY(-2px); box-shadow:0 16px 36px rgba(0,0,0,0.2); }
+.container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
 
-/* Headers */
-.card h2{ margin-top:0; font-size:24px; font-weight:700; }
-.header-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
-.btn-group{ display:flex; gap:10px; }
-.btn{ padding:6px 14px; border:none; border-radius:20px; cursor:pointer; font-weight:600; transition:all var(--transition-speed); background:var(--primary-color); color:#fff; }
-.btn:hover{ transform: scale(1.05); box-shadow:0 6px 18px rgba(0,0,0,0.2); }
+/* Card */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 16px var(--shadow);
+  padding: 20px;
+  transition: transform var(--speed);
+}
+.card:hover { transform: translateY(-3px); }
 
-/* Book list */
-.book-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
-.book-list li{ padding:10px 14px; border-radius:12px; background:rgba(0,0,0,0.02); transition:all var(--transition-speed); cursor:pointer; }
-.book-list li:hover{ background:rgba(0,122,255,0.1); transform:scale(1.02); }
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.header-row h2 { margin: 0; font-size: 20px; color: var(--primary); }
 
-/* Grid for recommended */
-.book-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:20px; margin-top:16px; }
-.book-item{ background:rgba(255,255,255,0.9); border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,0.12); overflow:hidden; transition:all var(--transition-speed); }
-.book-item:hover{ transform: translateY(-4px); box-shadow:0 12px 28px rgba(0,0,0,0.2); }
-.book-image img{ width:100%; aspect-ratio:3/4; object-fit:cover; display:block; }
-.book-info{ padding:12px; }
-.book-info h3{ font-size:16px; margin:0 0 4px 0; }
-.price{ color:var(--success-color); font-weight:600; }
+/* Buttons */
+.btn-group { display: flex; gap: 8px; }
+.btn, .btn-read {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 18px;
+  font-size: 14px;
+  cursor: pointer;
+  background: var(--primary);
+  color: #fff;
+  transition: all var(--speed);
+}
+.btn:hover, .btn-read:hover { opacity: 0.85; transform: scale(1.05); }
+.btn-danger { background: var(--danger); }
 
-/* Read button */
-.btn-read{ width:100%; text-align:center; background:var(--primary-color); color:#fff; padding:6px 0; border-radius:12px; margin-top:6px; transition: all var(--transition-speed); }
-.btn-read:hover{ background: linear-gradient(135deg,#007aff,#00cfff); transform:scale(1.05); }
+/* List & Column view */
+.book-list { list-style: none; margin: 0; padding: 0; }
+.book-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+.book-list li:last-child { border-bottom: none; }
+.list-view li { display: block; }
+.column-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.column-view li { border: 1px solid #eee; padding: 10px; border-radius: var(--radius); }
 
-/* Modal */
-.modal{ display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:999; }
-.modal-content{ background:#fff; border-radius:16px; max-width:90%; max-height:90%; overflow:hidden; animation:fadeIn 0.3s; }
-.close{ position:absolute; top:10px; right:14px; font-size:24px; cursor:pointer; color:#333; }
+/* Book grid */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.book-item {
+  background: #fafafa;
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+.book-image img {
+  max-width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+.book-info {
+  margin: 12px 0 8px;
+}
+.book-info h3 {
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+.price { color: var(--danger); font-weight: 600; }
+.btn-read {
+  margin-top: auto;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  width: 100%;
+}
 
-/* Animations */
-@keyframes fadeIn{ from{opacity:0; transform:scale(0.95);} to{opacity:1; transform:scale(1);} }
+/* Count */
+.count-label {
+  font-size: 13px;
+  color: gray;
+  display: block;
+  margin-bottom: 8px;
+}
 
-/* Dark mode */
-@media(prefers-color-scheme:dark){
-  .card, .book-item, .modal-content{ background:rgba(40,40,40,0.85); color:#fff; }
-  .book-list li{ background:rgba(255,255,255,0.05); color:#ddd; }
-  .btn, .btn-read{ background:#007aff; color:#fff; }
+/* Modal PDF */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 10px;
+  width: 90%; height: 90%;
+  display: flex; flex-direction: column;
+}
+.modal-content iframe {
+  flex: 1;
+  border: none;
+  border-radius: var(--radius);
+}
+.close {
+  align-self: flex-end;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--danger);
+}
+.close:hover { opacity: 0.7; }
+
+/* Responsive */
+@media(max-width:768px){
+  .header-row { flex-direction: column; gap: 8px; align-items: flex-start; }
+  .book-image img { height: 140px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
+
   <!-- Thư viện của tôi -->
   <div class="card">
     <div class="header-row">
-      <h2>Thư viện của tôi</h2>
+      <h2>📘 Thư viện của tôi</h2>
       <div class="btn-group">
         <button class="btn">Thêm</button>
-        <button class="btn">Xóa</button>
-        <button class="btn">Xem: Cột</button>
+        <button class="btn btn-danger">Xóa</button>
+        <button class="btn" onclick="toggleView('myDocs')">Xem: Cột</button>
       </div>
     </div>
     <label class="count-label">Số lượng sách: {{ my_documents_count }}</label>
-    <ul class="book-list list-view">
+    <ul id="myDocs" class="book-list list-view">
       {% if documents %}
         {% for doc in documents %}
-          <li>📘 <a href="{{ doc.file.url }}" target="_blank">{{ doc.title }}</a> - {{ doc.uploaded_at|date:"d/m/Y" }}</li>
+        <li>
+          <div style="display:flex; justify-content: space-between; align-items:center;">
+            <div>
+              📘 <a href="{{ doc.file.url }}" target="_blank">{{ doc.title }}</a>
+              <span style="font-size:12px;color:gray;">({{ doc.uploaded_at|date:"d/m/Y" }})</span>
+            </div>
+            <button class="btn-read" onclick="openPDF('{{ doc.file.url }}')">Đọc ngay</button>
+          </div>
+        </li>
         {% endfor %}
       {% else %}
         <li>📘 Danh sách trống</li>
@@ -90,57 +193,87 @@
   <!-- Sách chia sẻ -->
   <div class="card">
     <div class="header-row">
-      <h2>Sách chia sẻ</h2>
+      <h2>📙 Sách chia sẻ</h2>
       <div class="btn-group">
         <button class="btn">Thêm</button>
-        <button class="btn">Xóa</button>
-        <button class="btn">Xem: Cột</button>
+        <button class="btn btn-danger">Xóa</button>
+        <button class="btn" onclick="toggleView('sharedDocs')">Xem: Cột</button>
       </div>
     </div>
-    <label class="count-label">Số lượng sách: Chưa có sách chia sẻ</label>
-    <ul class="book-list column-view">
-      <li>📙 Danh sách trống</li>
+    <label class="count-label">Số lượng sách: {{ shared_count|default:"0" }}</label>
+    <ul id="sharedDocs" class="book-list list-view">
+      {% if shared_books %}
+        {% for book in shared_books %}
+        <li>
+          <div style="display:flex; justify-content: space-between; align-items:center;">
+            <div>
+              📙 <a href="{{ book.file.url }}" target="_blank">{{ book.title }}</a>
+            </div>
+            <button class="btn-read" onclick="openPDF('{{ book.file.url }}')">Đọc ngay</button>
+          </div>
+        </li>
+        {% endfor %}
+      {% else %}
+        <li>📙 Danh sách trống</li>
+      {% endif %}
     </ul>
   </div>
 
   <!-- Sách tuyển chọn -->
   <div class="card">
-    <h2>Đầu sách tuyển chọn</h2>
+    <h2>📖 Đầu sách tuyển chọn</h2>
     <label class="count-label">Số lượng sách: {{ recommend_count }}</label>
+    {% static 'images/default_cover.jpg' as default_cover %}
     <div class="book-grid">
       {% for recommend in recommend_books %}
-        <div class="book-item">
-          <div class="book-image">
-            {% if recommend.cover %}
-              <img src="{{ recommend.cover.url }}" alt="{{ recommend.title }}">
-            {% else %}
-              <img src="{% static 'images/default_cover.jpg' %}" alt="{{ recommend.title }}">
-            {% endif %}
-          </div>
-          <div class="book-info">
-            <h3>{{ recommend.title }}</h3>
-            {% if recommend.price %}<p class="price">{{ recommend_books.price|floatformat:0 }}₫</p>{% endif %}
-          </div>
-          <form class="book-actions" action="{{ recommend.file.url }}" method="get" target="_blank">
-            <button type="submit" class="btn-read">📖 Đọc ngay</button>
-          </form>
+      <div class="book-item">
+        <div class="book-image">
+          {% if recommend.cover %}
+            <img src="{{ recommend.cover.url }}" alt="{{ recommend.title }}">
+          {% else %}
+            <img src="{% static 'images/default_cover.jpg' %}" alt="{{ recommend.title }}">
+          {% endif %}
         </div>
+        
+        <div class="book-info">
+          <h3>{{ recommend.title }}</h3>
+          {% if recommend.price %}
+          <p class="price">{{ recommend.price|floatformat:0 }}₫</p>
+          {% endif %}
+        </div>
+        <button class="btn-read" onclick="openPDF('{{ recommend.file.url }}')">Đọc ngay</button>
+      </div>
       {% empty %}
         <p>Chưa có sách tuyển chọn</p>
       {% endfor %}
     </div>
   </div>
+
 </div>
 
 <!-- Modal PDF -->
 <div id="pdfModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closePDF()">&times;</span>
-    <iframe id="pdfViewer" width="100%" height="600px"></iframe>
+    <iframe id="pdfViewer"></iframe>
   </div>
 </div>
 
 {% block script %}
-<script src="{% static 'home/js/documents.js' %}"></script>
+<script>
+function toggleView(listId){
+  const list = document.getElementById(listId);
+  list.classList.toggle("list-view");
+  list.classList.toggle("column-view");
+}
+function openPDF(url){
+  document.getElementById("pdfViewer").src = url;
+  document.getElementById("pdfModal").style.display = "flex";
+}
+function closePDF(){
+  document.getElementById("pdfViewer").src = "";
+  document.getElementById("pdfModal").style.display = "none";
+}
+</script>
 {% endblock %}
 {% endblock %}

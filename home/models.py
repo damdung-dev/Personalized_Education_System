@@ -12,6 +12,7 @@ class StudentsAccount(models.Model):
     phone = models.CharField(max_length=15)
     email = models.EmailField(unique=True)
     job = models.CharField(max_length=50)
+    other=models.CharField(max_length=45)
 
     class Meta:
         db_table = 'account_students'

@@ -1,181 +1,180 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block style %}
 <style>
 :root {
-    --primary-color: #007aff;
-    --secondary-color: #00cfff;
-    --card-bg: rgba(255,255,255,0.85);
-    --card-shadow: rgba(0,0,0,0.12);
-    --border-radius: 20px;
-    --transition-speed: 0.3s;
+  --primary: #007aff;
+  --secondary: #00cfff;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --purple: #9c27b0;
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-bg-dark: rgba(28, 28, 28, 0.9);
+  --shadow: rgba(0, 0, 0, 0.12);
+  --radius: 20px;
+  --speed: 0.3s ease;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ===== Container Cards ===== */
+/* === Card === */
 .card {
-    background: var(--card-bg);
-    backdrop-filter: blur(14px);
-    border-radius: var(--border-radius);
-    padding: 24px 32px;
-    margin: 24px auto;
-    max-width: 720px;
-    box-shadow: 0 12px 28px var(--card-shadow);
-    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed);
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
+  border-radius: var(--radius);
+  padding: 24px 32px;
+  margin: 24px auto;
+  max-width: 800px;
+  box-shadow: 0 12px 28px var(--shadow);
+  transition: all var(--speed);
+  font-family: var(--font);
 }
 .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 36px rgba(0,0,0,0.18);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+}
+.card h2 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
 }
 
-/* ===== Welcome Card ===== */
-.welcome h2 {
-    font-size: 28px;
-    font-weight: 700;
-    color: #111;
-}
-.welcome .sub {
-    font-size: 16px;
-    color: #555;
-    margin-top: 6px;
-}
+/* === Welcome === */
+.welcome h2 { font-size: 28px; }
+.welcome .sub { font-size: 16px; color: #555; }
 
-/* ===== Stats Card ===== */
+/* === Stats === */
 .status-boxes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 20px;
 }
 .status {
-    flex: 1 1 150px;
-    min-width: 150px;
-    padding: 20px;
-    border-radius: var(--border-radius);
-    text-align: center;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform var(--transition-speed), box-shadow var(--transition-speed), background var(--transition-speed);
+  flex: 1 1 150px;
+  min-width: 150px;
+  padding: 18px;
+  border-radius: var(--radius);
+  text-align: center;
+  font-weight: 600;
+  color: white;
+  transition: all var(--speed);
 }
 .status span {
-    display: block;
-    font-size: 20px;
-    margin-top: 8px;
+  display: block;
+  font-size: 20px;
+  margin-top: 6px;
+  font-weight: 700;
 }
-.status.assigned { background: linear-gradient(135deg,#007aff,#00cfff); color:white; }
-.status.sent { background: linear-gradient(135deg,#ff9800,#ffb74d); color:white; }
-.status.signed { background: linear-gradient(135deg,#9c27b0,#ba68c8); color:white; }
-.status.approved { background: linear-gradient(135deg,#4caf50,#81c784); color:white; }
-.status:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.2);
-}
+.status.assigned { background: linear-gradient(135deg, #007aff, #00cfff); }
+.status.sent { background: linear-gradient(135deg, #ff9800, #ffb74d); }
+.status.signed { background: linear-gradient(135deg, #9c27b0, #ba68c8); }
+.status.approved { background: linear-gradient(135deg, #4caf50, #81c784); }
+.status:hover { transform: translateY(-3px) scale(1.04); }
 
-/* ===== Chart Card ===== */
+/* === Chart Section === */
 .chart {
-    text-align: center;
+  text-align: center;
 }
-.chart h2 { font-size: 24px; margin-bottom: 16px; color: #111; }
+.chart h2 {
+  font-size: 22px;
+  margin: 28px 0 16px 0;
+}
+canvas {
+  max-width: 100%;
+  height: auto;
+}
 
-/* Responsive */
-@media(max-width:768px){
-    .status-boxes { flex-direction: column; }
-    .card { padding: 18px 20px; margin:16px; }
+/* === Dark Mode === */
+@media(prefers-color-scheme: dark){
+  .card { background: var(--card-bg-dark); color: #fff; }
+  .welcome .sub { color: #ccc; }
 }
-@media (prefers-color-scheme: dark){
-    .card { background: rgba(30,30,30,0.85); color: #fff; }
-    .welcome .sub { color: #ccc; }
+
+/* === Responsive === */
+@media(max-width:768px){
+  .card { padding: 18px 20px; margin: 16px; }
+  .welcome h2 { font-size: 22px; }
+  .status-boxes { flex-direction: column; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="card welcome">
-  <h2>Welcome to the Dashboard</h2>
-  <p class="sub">Hi {{ user.first_name }}, explore your account and activities here.</p>
+  <h2>Welcome to the Dashboard 👋</h2>
+  <p class="sub">Hi {{ user.first_name|default:"User" }}, explore your account and activities here.</p>
 </div>
 
 <div class="card stats">
   <h2>Quick Stats</h2>
   <div class="status-boxes">
     <div class="status assigned">
-      Studying Courses<br><span>{{ ongoing_courses }}</span>
+      📚 Studying Courses
+      <span>{{ ongoing_courses|default:0 }}</span>
     </div>
     <div class="status sent">
-      Results<br><span>{{ completed_courses }} Completed</span>
+      🏆 Results
+      <span>{{ completed_courses|default:0 }}</span>
     </div>
     <div class="status signed">
-      Documents<br><span>{{ documents_count }}</span>
+      📄 Documents
+      <span>{{ documents_count|default:0 }}</span>
     </div>
     <div class="status approved">
-      Progress<br><span>{{ avg_progress }}%</span>
+      🚀 Progress
+      <span>{{ avg_progress|default:0 }}%</span>
     </div>
   </div>
 </div>
 
 <div class="card chart">
   <h2>Learning Progress</h2>
-  <canvas id="progressChart" style="max-width:600px; max-height:400px;"></canvas>
+  <canvas id="progressChart"></canvas>
 
-  <h2 style="margin-top:32px;">User Activity</h2>
-  <canvas id="activityChart" style="max-width:600px; max-height:400px;"></canvas>
+  <h2>User Activity</h2>
+  <canvas id="activityChart"></canvas>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-/* === Doughnut Chart: Courses === */
+/* === Doughnut Chart === */
 const ctx = document.getElementById('progressChart').getContext('2d');
-const gradientCompleted = ctx.createLinearGradient(0,0,0,400);
-gradientCompleted.addColorStop(0,'#4caf50');
-gradientCompleted.addColorStop(1,'#81c784');
-const gradientOngoing = ctx.createLinearGradient(0,0,0,400);
-gradientOngoing.addColorStop(0,'#ff9800');
-gradientOngoing.addColorStop(1,'#ffb74d');
-
 new Chart(ctx, {
   type: 'doughnut',
   data: {
     labels: ['Completed', 'Ongoing'],
     datasets: [{
-      label: 'Courses',
       data: [{{ completed_courses|default:0 }}, {{ ongoing_courses|default:0 }}],
-      backgroundColor: [gradientCompleted, gradientOngoing],
-      borderWidth: 1,
+      backgroundColor: ['#4caf50','#ff9800'],
       borderColor: '#fff',
-      hoverOffset: 10
+      borderWidth: 2,
+      hoverOffset: 8
     }]
   },
   options: {
-    responsive: true,
+    cutout: '60%',
     plugins: {
-      legend: { 
-        position: 'bottom', 
-        labels:{color: 'inherit', font:{size:14,weight:'600'}} 
-      },
-      tooltip:{mode:'index', intersect:false}
-    },
-    animation: { animateScale:true, animateRotate:true },
-    cutout:'60%'
+      legend: {
+        position: 'bottom',
+        labels: { color: 'inherit', font: { size: 14, weight: '600' } }
+      }
+    }
   }
 });
 
-/* === Line Chart: User Actions === */
+/* === Line Chart: User Activity === */
 const activityCtx = document.getElementById('activityChart').getContext('2d');
 const activityDates = JSON.parse('{{ action_dates|escapejs }}');
-const activityCounts = JSON.parse('{{ action_counts|escapejs }}'); // dữ liệu giây
+const activityCounts = JSON.parse('{{ action_counts|escapejs }}');
 
-// Hàm chuyển giây → hh:mm:ss
-function formatTime(seconds) {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-
-    let result = "";
-    if (h > 0) result += `${h}h:`;
-    if (m > 0 || h > 0) result += `${m}m:`;  // nếu có giờ thì luôn hiển thị phút
-    result += `${s}s`;
-    return result;
+function formatTime(seconds){
+  const h = Math.floor(seconds/3600);
+  const m = Math.floor((seconds%3600)/60);
+  const s = seconds%60;
+  return (h>0? h+"h ":"") + (m>0? m+"m ":"") + s+"s";
 }
 
 new Chart(activityCtx, {
@@ -189,29 +188,21 @@ new Chart(activityCtx, {
       backgroundColor: 'rgba(0,122,255,0.2)',
       fill: true,
       tension: 0.3,
-      pointRadius: 5,
-      pointBackgroundColor: '#007aff'
+      pointRadius: 4
     }]
   },
   options: {
     responsive: true,
-    plugins: {
-      legend: { display: true, labels:{color:'inherit'} }
-    },
     scales: {
-      x: { title: { display:true, text:'Date' } },
-      y: { 
-        title: { display:true, text:'Duration' }, 
-        beginAtZero:true,
-        ticks: {
-          callback: function(value, index, ticks) {
-            return formatTime(value); // hiển thị hh:mm:ss, bỏ 0h hoặc 0m
-          }
-        }
-      }
-    }
+      y: {
+        beginAtZero: true,
+        ticks: { callback: val => formatTime(val) },
+        title: { display: true, text: "Duration" }
+      },
+      x: { title: { display: true, text: "Date" } }
+    },
+    plugins: { legend: { labels: { color: 'inherit' } } }
   }
 });
-
 </script>
 {% endblock %}

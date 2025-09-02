@@ -29,11 +29,11 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    'ab2f36c40865.ngrok-free.app',  # host ngrok hiện tại
+    'a851e8e0baac.ngrok-free.app',  # host ngrok hiện tại
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://ab2f36c40865.ngrok-free.app',
+    'https://a851e8e0baac.ngrok-free.app',
 ]
 
 LOGIN_URL = ''          # URL của trang login của bạn

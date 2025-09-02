@@ -1,43 +1,202 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Calendar{% endblock %}
+{% block title %}Lịch{% endblock %}
 
 {% block style %}
 <link rel="stylesheet" href="{% static 'home/css/calendar.css' %}">
+<style>
+:root {
+  --primary: #007aff;
+  --secondary: #00cfff;
+  --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+  --bg-light: #fff;
+  --bg-dark: #1c1c1e;
+  --radius: 16px;
+  --transition: 0.25s ease;
+  --shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+/* Container */
+.calendar-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 10px;
+  font-family: system-ui, sans-serif;
+}
+
+/* Card */
+.card {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  transition: all var(--transition);
+  overflow: hidden;
+}
+body.dark .card {
+  background: var(--bg-dark);
+  color: #eee;
+}
+
+/* Header */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+.calendar-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+#today-btn {
+  padding: 6px 16px;
+  border: none;
+  background: var(--gradient);
+  color: #fff;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+#today-btn:hover {
+  transform: translateY(-2px);
+}
+.nav-buttons {
+  display: flex;
+  gap: 8px;
+}
+.nav-buttons button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #f2f2f7;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+.nav-buttons button:hover {
+  background: rgba(0,122,255,0.1);
+}
+
+/* Grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.calendar-weekday {
+  font-weight: 600;
+  text-align: center;
+  padding: 6px 0;
+  background: #f2f2f7;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+body.dark .calendar-weekday { background: #2c2c2e; }
+
+.calendar-cell {
+  width: 100%;
+  padding-top: 100%; /* trick để luôn vuông */
+  position: relative;
+  background: #fafafa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background var(--transition);
+  font-size: 0.85rem;
+}
+.calendar-cell:hover {
+  background: rgba(0,122,255,0.08);
+}
+.calendar-cell .date-number {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+/* Today */
+.calendar-cell.today {
+  background: rgba(0,122,255,0.15);
+  border: 2px solid var(--primary);
+}
+.calendar-cell.today .date-number {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Other month */
+.calendar-cell.other-month {
+  opacity: 0.4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .calendar-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .calendar-header h2 { font-size: 1.2rem; }
+  .calendar-weekday { font-size: 0.75rem; padding: 4px 0; }
+  .calendar-cell { font-size: 0.7rem; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="calendar-container">
-    <div class="card p-4">
-        <div class="calendar-header mb-3">
-            <button id="today-btn" style="padding:6px 14px; border:none; background-color:#ff3b30; color:white; border-radius:20px; font-size:1rem;">
-                Hôm nay
-            </button>
-            <h2 style="font-size:2rem; margin:0;">{{ month }}/{{ year }} 
-                <span id="current-time" style="font-size:1rem; font-weight:normal;"></span>
-            </h2>
-        </div>
-
-        <div class="calendar-grid">
-            {% for day in weekdays %}
-                <div class="calendar-weekday">{{ day }}</div>
-            {% endfor %}
-
-            {% for day in month_days %}
-                <div class="calendar-cell {% if day == today.date %}today{% endif %} 
-                            {% if day.month != month %}other-month{% endif %}" id="day-{{ day }}">
-                    <span class="date-number">{{ day.day }}</span>
-                </div>
-            {% endfor %}
-        </div>
+  <div class="card">
+    <div class="calendar-header">
+      <div class="nav-buttons">
+        <button id="prev-month">&lt;</button>
+        <button id="next-month">&gt;</button>
+      </div>
+      <h2>{{ month }}/{{ year }} 
+        <span id="current-time" style="font-size:1rem; font-weight:normal; margin-left:6px;"></span>
+      </h2>
+      <button id="today-btn">Hôm nay</button>
     </div>
+
+    <div class="calendar-grid">
+      {% for day in weekdays %}
+        <div class="calendar-weekday">{{ day }}</div>
+      {% endfor %}
+
+      {% for day in month_days %}
+        <div class="calendar-cell 
+                    {% if day == today.date %}today{% endif %}
+                    {% if day.month != month %}other-month{% endif %}" 
+             id="day-{{ day }}">
+          <span class="date-number">{{ day.day }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
 </div>
-
-<style>
-
-</style>
-{% block script %}
-  <script src="{% static 'home/js/calendar.js' %}"></script>
 {% endblock %}
 
+{% block script %}
+<script>
+  // Cập nhật thời gian thực
+  function updateTime() {
+    const now = new Date();
+    document.getElementById("current-time").innerText =
+      now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  }
+  setInterval(updateTime, 1000);
+  updateTime();
+
+  // Chuyển tháng
+  document.getElementById("prev-month").addEventListener("click", function() {
+    window.location.href = "?month={{ month|add:"-1" }}&year={{ year }}";
+  });
+  document.getElementById("next-month").addEventListener("click", function() {
+    window.location.href = "?month={{ month|add:"1" }}&year={{ year }}";
+  });
+  document.getElementById("today-btn").addEventListener("click", function() {
+    window.location.href = "?month={{ today.date.month }}&year={{ today.date.year }}";
+  });
+</script>
 {% endblock %}
