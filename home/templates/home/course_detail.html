@@ -166,7 +166,7 @@ button:hover { transform: scale(1.05); }
 
   <!-- Title -->
   <div class="page-title">
-    <h1>📚 Danh sách bài học của {{ course.course_name }}</h1>
+    <h1>📚 Danh sách bài học của tôi{{ course.course_name }}</h1>
   </div>
 
   <!-- Search -->
@@ -209,6 +209,18 @@ document.addEventListener("DOMContentLoaded", () => {
       card.style.display = card.dataset.title.includes(query) ? "flex" : "none";
     });
   });
+});
+
+const searchInput = document.getElementById('searchInput');
+const lessonList = document.getElementById('lessonList');
+const lessons = lessonList.getElementsByTagName('li');
+
+searchInput.addEventListener('keyup', function() {
+  const filter = this.value.toLowerCase();
+  for (let i = 0; i < lessons.length; i++) {
+    const text = lessons[i].textContent.toLowerCase();
+    lessons[i].style.display = text.includes(filter) ? "" : "none";
+  }
 });
 </script>
 {% endblock %}

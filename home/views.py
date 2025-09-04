@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from .models import StudentsAccount, RecommendDocument, CourseModule,RecommendCourse, ListLesson, Teacher, UserAction, ListLesson
+from .models import StudentsAccount, RecommendDocument, CourseModule,RecommendCourse
+from .models import ListLesson, Teacher, UserAction, ListLesson,  UserActionBook
 from signup.models import Student
 from .forms import DocumentUploadForm
 from django.http import JsonResponse
@@ -8,12 +9,21 @@ from llama_cpp import Llama
 from datetime import datetime
 from django.db.models.functions import TruncDate
 from django.db.models import Sum
+from django.db import models
 from django.utils.timezone import now
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from llama_cpp import Llama
 from django.contrib import messages
+from django.db.models import Case, When, Value, IntegerField
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
+from django.db.models import Q
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 import calendar
 import json
 
@@ -44,16 +54,29 @@ def index(request):
     documents_count = RecommendDocument.objects.count() 
     total_courses = mycourse.count()
     avg_progress = round((completed_courses / total_courses) * 100, 2) if total_courses else 0
+    # Lấy 5 sách gần đây sinh viên đọc
+    # Lấy 5 sách gần đây sinh viên đọc
+    recent_books = UserActionBook.objects.filter(
+        student_id=student_acc.student_id
+    ).order_by('-timestamp')[:5]
+
+    # Lấy 5 sách khác mà sinh viên chưa đọc (ví dụ cùng source với các sách đang học)
+    similar_books = UserActionBook.objects.exclude(
+        student_id=student_acc.student_id
+    ).order_by('-timestamp')[:5]
 
     return render(request, "home/home.html", {
         "user": student_acc,
         "action_dates": json.dumps(action_dates),
-        "action_counts": json.dumps(action_seconds),  # gửi giây cho JS
+        "action_counts": json.dumps(action_seconds),
         "ongoing_courses": ongoing_courses,
         "completed_courses": completed_courses, 
         "documents_count": documents_count, 
         "avg_progress": avg_progress, 
+        "recent_books": recent_books,
+        "similar_books": similar_books,
     })
+
 
 def dashboard_view(request):
     email = request.session.get('user_email')
@@ -82,16 +105,29 @@ def dashboard_view(request):
     documents_count = RecommendDocument.objects.count() 
     total_courses = mycourse.count()
     avg_progress = round((completed_courses / total_courses) * 100, 2) if total_courses else 0
+    # Lấy 5 sách gần đây sinh viên đọc
+    # Lấy 5 sách gần đây sinh viên đọc
+    recent_books = UserActionBook.objects.filter(
+        student_id=student_acc.student_id
+    ).order_by('-timestamp')[:5]
+
+    # Lấy 5 sách khác mà sinh viên chưa đọc (ví dụ cùng source với các sách đang học)
+    similar_books = UserActionBook.objects.exclude(
+        student_id=student_acc.student_id
+    ).order_by('-timestamp')[:5]
 
     return render(request, "home/home.html", {
         "user": student_acc,
         "action_dates": json.dumps(action_dates),
-        "action_counts": json.dumps(action_seconds),  # gửi giây cho JS
+        "action_counts": json.dumps(action_seconds),
         "ongoing_courses": ongoing_courses,
         "completed_courses": completed_courses, 
         "documents_count": documents_count, 
         "avg_progress": avg_progress, 
+        "recent_books": recent_books,
+        "similar_books": similar_books,
     })
+
 
 def account_view(request):
     email = request.session.get('user_email')
@@ -161,20 +197,71 @@ def courses_view(request):
     # Khóa học đã đăng ký
     my_courses = RecommendCourse.objects.filter(student_id=student.student_id)
 
-    # Khóa học hiện có (Course) mà sinh viên chưa đăng ký
-    registered_codes = my_courses.values_list('code', flat=True)
-    suggested_courses = CourseModule.objects.exclude(code__in=registered_codes)
+    # Nếu chưa có khóa học nào → gợi ý toàn bộ
+    if not my_courses.exists():
+        suggested_courses = CourseModule.objects.all()
+    else:
+        # Khóa học chưa đăng ký
+        registered_codes = my_courses.values_list('code', flat=True)
+        available_courses = CourseModule.objects.exclude(code__in=registered_codes)
 
+        # ========================================
+        # 1. Tính tổng thời lượng học trong ngày
+        # ========================================
+        today = now().date()
+        total_today = UserAction.objects.filter(
+            user=student,
+            timestamp__date=today
+        ).aggregate(total=Sum("duration"))["total"] or 0
 
-    return render(request, 'home/courses.html', {
-        'my_courses': my_courses,
-        'suggested_courses': suggested_courses
+        # Ngưỡng phân loại
+        HIGH_ACTIVITY = 2 * 60 * 60   # > 2 giờ/ngày
+        LOW_ACTIVITY = 30 * 60        # < 30 phút/ngày
+
+        # ========================================
+        # 2. Gợi ý dựa vào hành vi
+        # ========================================
+        if total_today >= HIGH_ACTIVITY:
+            # Học chăm chỉ → gợi ý khóa học nhiều tín chỉ
+            suggested_courses = available_courses.order_by("-credits")[:10]
+        elif total_today <= LOW_ACTIVITY:
+            # Học ít → gợi ý khóa học ngắn / ít tín chỉ
+            suggested_courses = available_courses.order_by("credits")[:10]
+        else:
+            # Trung bình → gợi ý theo tên
+            suggested_courses = available_courses.order_by("name")[:10]
+
+    return render(request, "home/courses.html", {
+        "my_courses": my_courses,
+        "suggested_courses": suggested_courses
     })
+'''
+=================================================================
+Mục đề xuất sách
+==================================================================
+'''
+def get_similar_books(book, all_books, top_n=5):
+    if not book:
+        return []
+
+    corpus = [b.title + " " + (b.author or "") for b in all_books]
+    vectorizer = TfidfVectorizer(stop_words="english")
+    tfidf_matrix = vectorizer.fit_transform(corpus)
+
+    book_idx = list(all_books).index(book)
+    cosine_sim = cosine_similarity(tfidf_matrix[book_idx], tfidf_matrix).flatten()
+
+    similar_indices = cosine_sim.argsort()[-top_n-1:-1][::-1]
+    return [list(all_books)[i] for i in similar_indices if i != book_idx]
 
 def documents_view(request):
-    my_docs = 0
-    recommend_books = RecommendDocument.objects.all()
+    recommend_books = RecommendDocument.objects.all().order_by("-id")
 
+    paginator = Paginator(recommend_books, 15)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # Upload
     if request.method == 'POST':
         form = DocumentUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -183,39 +270,49 @@ def documents_view(request):
     else:
         form = DocumentUploadForm()
 
+    # Sách đã đọc gần đây (theo student_id giả lập)
+    student_id = "demo_user"  # sau này lấy từ session/login
+    recent_actions = UserActionBook.objects.filter(student_id=student_id).order_by("-timestamp")[:5]
+    recent_books = [a.book for a in recent_actions]
+
+    # Nếu có sách đã đọc thì gợi ý sách tương tự cuốn gần nhất
+    similar_books = []
+    if recent_books:
+        similar_books = get_similar_books(recent_books[0], recommend_books, top_n=5)
+
     return render(request, 'home/documents.html', {
-        'my_documents': my_docs,
-        'my_documents_count': 0,
-        'recommend_books': recommend_books,
-        'recommend_count': recommend_books.count(),
-        'form': form
+        'page_obj': page_obj,
+        'recommend_count': paginator.count,
+        'form': form,
+        'recent_books': recent_books,
+        'similar_books': similar_books,
     })
 
 def register_course(request, code):
-    if request.method != "POST":
-        return JsonResponse({"success": False, "message": "Phương thức không hợp lệ"})
+    """API cho nút 'Đăng ký' trong template"""
+    if request.method == "POST":
+        email = request.session.get('user_email')
+        if not email:
+            return JsonResponse({"success": False, "message": "Bạn chưa đăng nhập."})
 
-    email = request.session.get('user_email')
-    if not email:
-        return JsonResponse({"success": False, "message": "Chưa đăng nhập"})
+        student = StudentsAccount.objects.get(email=email)
+        course = get_object_or_404(CourseModule, code=code)
 
-    student = get_object_or_404(StudentsAccount, email=email)
-    course = get_object_or_404(CourseModule, code=code)
+        # Kiểm tra đã đăng ký chưa
+        if RecommendCourse.objects.filter(student_id=student.student_id, code=course.code).exists():
+            return JsonResponse({"success": False, "message": "Bạn đã đăng ký khóa học này."})
 
-    # Kiểm tra đã đăng ký
-    if RecommendCourse.objects.filter(student_id=student.student_id, code=course.code).exists():
-        return JsonResponse({"success": False, "message": "Bạn đã đăng ký khóa học này!"})
+        # Tạo bản ghi mới
+        RecommendCourse.objects.create(
+            student_id=student.student_id,
+            code=course.code,
+            name=course.name,
+            credits=course.credits,
+            status="studying"   # hoặc "pending", tùy bạn định nghĩa
+        )
+        return JsonResponse({"success": True, "message": "Đăng ký thành công!"})
 
-    # Tạo bản ghi mới
-    RecommendCourse.objects.create(
-        student_id=student.student_id,  # dùng student_id kiểu varchar
-        code=course.code,
-        name=course.name,
-        credits=course.credits,
-        status='studying'
-    )
-
-    return JsonResponse({"success": True, "message": "Đăng ký thành công!"})
+    return JsonResponse({"success": False, "message": "Phương thức không hợp lệ."})
 
 def course_detail(request, code):
     # Lấy email từ session
@@ -272,14 +369,17 @@ def courses_current(request):
     # Khóa học đã đăng ký
     my_courses = RecommendCourse.objects.filter(student_id=student)
 
-    # Khóa học hiện có (Course) mà sinh viên chưa đăng ký
+    # Lấy danh sách mã khóa học đã đăng ký
     registered_codes = my_courses.values_list('code', flat=True)
+
+    # Khóa học gợi ý (hiện có nhưng chưa đăng ký)
     suggested_courses = CourseModule.objects.exclude(code__in=registered_codes)
 
     return render(request, 'home/centers.html', {
         'my_courses': my_courses,
         'suggested_courses': suggested_courses
     })
+
 
 def help_page(request):
     return render(request, 'home/help.html')

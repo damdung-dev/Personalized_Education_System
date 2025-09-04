@@ -138,6 +138,32 @@ canvas {
   <canvas id="activityChart"></canvas>
 </div>
 
+<div class="card">
+  <h2>📖 Sách đã đọc gần đây</h2>
+  {% if recent_books %}
+    <ul>
+      {% for book in recent_books %}
+        <li><a href="{{ book.get_link }}" target="_blank">{{ book.title }}</a> - {{ book.author|default:"Unknown" }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Chưa có sách nào được đọc.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>✨ Sách tuyển chọn cho bạn</h2>
+  {% if similar_books %}
+    <ul>
+      {% for book in similar_books %}
+        <li><a href="{{ book.get_link }}" target="_blank">{{ book.title }}</a> - {{ book.author|default:"Unknown" }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Chưa có gợi ý phù hợp.</p>
+  {% endif %}
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 /* === Doughnut Chart === */

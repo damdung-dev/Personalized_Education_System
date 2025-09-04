@@ -5,7 +5,7 @@ from .models import RecommendDocument,ListLesson
 class DocumentUploadForm(forms.ModelForm):
     class Meta:
         model = RecommendDocument
-        fields = ['title', 'cover', 'price', 'file']
+        fields = ['title', 'url','source', 'author']
 
 class VideoForm(forms.ModelForm):
     class Meta:

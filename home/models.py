@@ -23,17 +23,28 @@ class StudentsAccount(models.Model):
 
 # Tài liệu đề xuất
 class RecommendDocument(models.Model):
-    title = models.CharField(max_length=255)
-    cover = models.ImageField(upload_to='book_covers/', blank=True, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    file = models.FileField(upload_to='documents/')
-    uploaded_at = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=512)
+    author = models.CharField(max_length=1024, null=True, blank=True)
+    source = models.CharField(max_length=64, null=True, blank=True)  # ví dụ: 'gutenberg', 'openlibrary'
+    source_id = models.CharField(max_length=128, null=True, blank=True)
+    url = models.TextField(null=True, blank=True)  # link đến sách
+    format = models.CharField(max_length=512, null=True, blank=True)  # ví dụ: pdf, epub
+    added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'recommend_book'
 
+    def is_pdf(self):
+        if self.url and self.url.lower().endswith(".pdf"):
+            return True
+        return False
+
+    def get_link(self):
+        return self.url or ""
+
     def __str__(self):
         return self.title
+
 
 
 # Khóa học gốc
@@ -136,3 +147,22 @@ class UserAction(models.Model):
     def __str__(self):
         return f"{self.user} - {self.video} - {self.action}"
 
+class UserActionBook(models.Model):
+    student_id = models.CharField(max_length=20)  # thay vì User mặc định
+    book = models.ForeignKey(RecommendDocument, on_delete=models.CASCADE)
+    action = models.CharField(
+        max_length=50,
+        choices=[
+            ('view', 'Xem'),
+            ('read', 'Đọc'),
+            ('download', 'Tải xuống')
+        ]
+    )
+    timestamp = models.DateTimeField(auto_now_add=True)
+    duration = models.IntegerField(default=0)  # số giây đọc (nếu có)
+
+    class Meta:
+        db_table = 'user_action_book'
+
+    def __str__(self):
+        return f"{self.student_id} - {self.book.title} ({self.action})"

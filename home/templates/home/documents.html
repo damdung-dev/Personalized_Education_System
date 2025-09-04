@@ -11,111 +11,81 @@
   --bg-card: #fff;
   --shadow: rgba(0,0,0,0.12);
   --radius: 14px;
-  --speed: 0.3s ease;
+  --speed: 0.25s ease;
+  --divider: #ddd;
 }
 
-body { background: #f7f9fb; margin: 0; }
-
+body { 
+  background: linear-gradient(135deg, #f0f4f9, #e6edf5);
+  margin: 0; 
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
 .container {
   max-width: 1100px;
-  margin: 30px auto;
-  padding: 0 16px;
+  margin: 40px auto;
+  padding: 0 20px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 36px;
 }
 
 /* Card */
 .card {
   background: var(--bg-card);
   border-radius: var(--radius);
-  box-shadow: 0 6px 16px var(--shadow);
-  padding: 20px;
-  transition: transform var(--speed);
+  box-shadow: 0 6px 20px var(--shadow);
+  padding: 22px;
+  transition: transform var(--speed), box-shadow var(--speed);
 }
-.card:hover { transform: translateY(-3px); }
+.card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.15); }
 
 .header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
-.header-row h2 { margin: 0; font-size: 20px; color: var(--primary); }
+.header-row h2 { margin: 0; font-size: 22px; color: var(--primary); }
 
 /* Buttons */
-.btn-group { display: flex; gap: 8px; }
+.btn-group { display: flex; align-items: center; gap: 10px; }
+.btn-group .divider { width: 1px; background: var(--divider); height: 24px; margin: 0 6px; }
+
 .btn, .btn-read {
-  padding: 6px 14px;
+  padding: 7px 16px;
   border: none;
-  border-radius: 18px;
+  border-radius: 22px;
   font-size: 14px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   background: var(--primary);
   color: #fff;
   transition: all var(--speed);
+  text-decoration: none; 
 }
-.btn:hover, .btn-read:hover { opacity: 0.85; transform: scale(1.05); }
+.btn svg, .btn-read svg { width: 16px; height: 16px; }
+.btn:hover, .btn-read:hover { opacity: 0.9; transform: scale(1.05); }
 .btn-danger { background: var(--danger); }
+.btn-alt { background: var(--secondary); }
 
-/* List & Column view */
+/* List view */
 .book-list { list-style: none; margin: 0; padding: 0; }
 .book-list li {
-  padding: 8px 0;
+  padding: 10px 0;
   border-bottom: 1px solid #eee;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px;
 }
 .book-list li:last-child { border-bottom: none; }
-.list-view li { display: block; }
-.column-view {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-}
-.column-view li { border: 1px solid #eee; padding: 10px; border-radius: var(--radius); }
-
-/* Book grid */
-.book-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-}
-.book-item {
-  background: #fafafa;
-  border-radius: var(--radius);
-  padding: 14px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-}
-.book-image img {
-  max-width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: var(--radius);
-}
-.book-info {
-  margin: 12px 0 8px;
-}
-.book-info h3 {
-  font-size: 16px;
-  margin: 0 0 4px;
-}
-.price { color: var(--danger); font-weight: 600; }
-.btn-read {
-  margin-top: auto;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  width: 100%;
-}
 
 /* Count */
 .count-label {
   font-size: 13px;
   color: gray;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 /* Modal PDF */
@@ -125,7 +95,7 @@ body { background: #f7f9fb; margin: 0; }
   z-index: 999;
   left: 0; top: 0;
   width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.75);
   justify-content: center;
   align-items: center;
 }
@@ -133,7 +103,7 @@ body { background: #f7f9fb; margin: 0; }
   background: #fff;
   border-radius: var(--radius);
   padding: 10px;
-  width: 90%; height: 90%;
+  width: 92%; height: 92%;
   display: flex; flex-direction: column;
 }
 .modal-content iframe {
@@ -143,17 +113,19 @@ body { background: #f7f9fb; margin: 0; }
 }
 .close {
   align-self: flex-end;
-  font-size: 22px;
+  font-size: 24px;
   cursor: pointer;
   color: var(--danger);
+  font-weight: bold;
 }
 .close:hover { opacity: 0.7; }
 
-/* Responsive */
-@media(max-width:768px){
-  .header-row { flex-direction: column; gap: 8px; align-items: flex-start; }
-  .book-image img { height: 140px; }
+/* Pagination */
+.pagination {
+  margin-top: 16px;
+  display:flex; gap:10px; align-items:center; justify-content:center;
 }
+.pagination a { text-decoration:none; }
 </style>
 {% endblock %}
 
@@ -165,23 +137,23 @@ body { background: #f7f9fb; margin: 0; }
     <div class="header-row">
       <h2>📘 Thư viện của tôi</h2>
       <div class="btn-group">
-        <button class="btn">Thêm</button>
-        <button class="btn btn-danger">Xóa</button>
-        <button class="btn" onclick="toggleView('myDocs')">Xem: Cột</button>
+        <button class="btn"><svg fill="currentColor"><use href="#icon-plus"/></svg> Thêm</button>
+        <button class="btn btn-danger"><svg fill="currentColor"><use href="#icon-trash"/></svg> Xóa</button>
+        <div class="divider"></div>
+        <button class="btn btn-alt"><svg fill="currentColor"><use href="#icon-list"/></svg> List</button>
+        <button class="btn btn-alt"><svg fill="currentColor"><use href="#icon-grid"/></svg> Cột</button>
       </div>
     </div>
     <label class="count-label">Số lượng sách: {{ my_documents_count }}</label>
-    <ul id="myDocs" class="book-list list-view">
+    <ul id="myDocs" class="book-list">
       {% if documents %}
         {% for doc in documents %}
         <li>
-          <div style="display:flex; justify-content: space-between; align-items:center;">
-            <div>
-              📘 <a href="{{ doc.file.url }}" target="_blank">{{ doc.title }}</a>
-              <span style="font-size:12px;color:gray;">({{ doc.uploaded_at|date:"d/m/Y" }})</span>
-            </div>
-            <button class="btn-read" onclick="openPDF('{{ doc.file.url }}')">Đọc ngay</button>
+          <div>
+            📘 <a href="{{ doc.file.url }}" target="_blank">{{ doc.title }}</a>
+            <span style="font-size:12px;color:gray;">({{ doc.uploaded_at|date:"d/m/Y" }})</span>
           </div>
+          <button class="btn-read" onclick="openPDF('{{ doc.file.url }}')"><svg fill="currentColor"><use href="#icon-eye"/></svg> Đọc ngay</button>
         </li>
         {% endfor %}
       {% else %}
@@ -195,22 +167,22 @@ body { background: #f7f9fb; margin: 0; }
     <div class="header-row">
       <h2>📙 Sách chia sẻ</h2>
       <div class="btn-group">
-        <button class="btn">Thêm</button>
-        <button class="btn btn-danger">Xóa</button>
-        <button class="btn" onclick="toggleView('sharedDocs')">Xem: Cột</button>
+        <button class="btn"><svg fill="currentColor"><use href="#icon-plus"/></svg> Thêm</button>
+        <button class="btn btn-danger"><svg fill="currentColor"><use href="#icon-trash"/></svg> Xóa</button>
+        <div class="divider"></div>
+        <button class="btn btn-alt"><svg fill="currentColor"><use href="#icon-list"/></svg> List</button>
+        <button class="btn btn-alt"><svg fill="currentColor"><use href="#icon-grid"/></svg> Cột</button>
       </div>
     </div>
     <label class="count-label">Số lượng sách: {{ shared_count|default:"0" }}</label>
-    <ul id="sharedDocs" class="book-list list-view">
+    <ul id="sharedDocs" class="book-list">
       {% if shared_books %}
         {% for book in shared_books %}
         <li>
-          <div style="display:flex; justify-content: space-between; align-items:center;">
-            <div>
-              📙 <a href="{{ book.file.url }}" target="_blank">{{ book.title }}</a>
-            </div>
-            <button class="btn-read" onclick="openPDF('{{ book.file.url }}')">Đọc ngay</button>
+          <div>
+            📙 <a href="{{ book.file.url }}" target="_blank">{{ book.title }}</a>
           </div>
+          <button class="btn-read" onclick="openPDF('{{ book.file.url }}')"><svg fill="currentColor"><use href="#icon-eye"/></svg> Đọc ngay</button>
         </li>
         {% endfor %}
       {% else %}
@@ -221,34 +193,43 @@ body { background: #f7f9fb; margin: 0; }
 
   <!-- Sách tuyển chọn -->
   <div class="card">
-    <h2>📖 Đầu sách tuyển chọn</h2>
+    <div class="header-row">
+        <h2>📖 Đầu sách tuyển chọn</h2>
+    </div>
+
     <label class="count-label">Số lượng sách: {{ recommend_count }}</label>
-    {% static 'images/default_cover.jpg' as default_cover %}
-    <div class="book-grid">
-      {% for recommend in recommend_books %}
-      <div class="book-item">
-        <div class="book-image">
-          {% if recommend.cover %}
-            <img src="{{ recommend.cover.url }}" alt="{{ recommend.title }}">
-          {% else %}
-            <img src="{% static 'images/default_cover.jpg' %}" alt="{{ recommend.title }}">
-          {% endif %}
-        </div>
-        
-        <div class="book-info">
-          <h3>{{ recommend.title }}</h3>
-          {% if recommend.price %}
-          <p class="price">{{ recommend.price|floatformat:0 }}₫</p>
-          {% endif %}
-        </div>
-        <button class="btn-read" onclick="openPDF('{{ recommend.file.url }}')">Đọc ngay</button>
-      </div>
-      {% empty %}
-        <p>Chưa có sách tuyển chọn</p>
-      {% endfor %}
+
+    <ul class="book-list list-view">
+        {% for recommend in page_obj %}
+          <li>
+            📖 {{ recommend.title }}
+
+            {% if recommend.get_link %}
+                {% if recommend.is_pdf %}
+                    <button class="btn-read" onclick="openPDF('{{ recommend.get_link }}', '{{ recommend.title }}')">Đọc ngay</button>
+                {% else %}
+                    <a class="btn-read" href="{{ recommend.get_link }}" target="_blank">Đọc ngay</a>
+                {% endif %}
+            {% else %}
+                <button class="btn-read" onclick="alert('❌ Chưa có file hoặc URL để đọc!')">Đọc ngay</button>
+            {% endif %}
+          </li>
+        {% empty %}
+            <li>📖 Danh sách trống</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Phân trang -->
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn">⬅ Trang trước</a>
+        {% endif %}
+        <span>Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn">Trang sau ➡</a>
+        {% endif %}
     </div>
   </div>
-
 </div>
 
 <!-- Modal PDF -->
@@ -259,13 +240,17 @@ body { background: #f7f9fb; margin: 0; }
   </div>
 </div>
 
+<!-- Icons -->
+<svg style="display:none;">
+  <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6v12m6-12v12M5 6l1 14h12l1-14" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="icon-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" fill="white"/></symbol>
+  <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12zm11 3a3 3 0 100-6 3 3 0 000 6z" fill="white"/></symbol>
+</svg>
+
 {% block script %}
 <script>
-function toggleView(listId){
-  const list = document.getElementById(listId);
-  list.classList.toggle("list-view");
-  list.classList.toggle("column-view");
-}
 function openPDF(url){
   document.getElementById("pdfViewer").src = url;
   document.getElementById("pdfModal").style.display = "flex";
