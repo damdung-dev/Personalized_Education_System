@@ -1,35 +1,35 @@
-// Cập nhật thời gian hiện tại
+// Hiển thị giờ hiện tại + highlight ngày hôm nay
 function updateTime() {
     const now = new Date();
-    const hours = now.getHours().toString().padStart(2,'0');
-    const minutes = now.getMinutes().toString().padStart(2,'0');
-    const seconds = now.getSeconds().toString().padStart(2,'0');
-    document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+    const hh = now.getHours().toString().padStart(2,'0');
+    const mm = now.getMinutes().toString().padStart(2,'0');
+    const ss = now.getSeconds().toString().padStart(2,'0');
+    document.getElementById('current-time').textContent = `${hh}:${mm}:${ss}`;
 
-    // Cập nhật ngày hôm nay
-    const todayElems = document.querySelectorAll('.calendar-cell.today');
-    todayElems.forEach(el => el.classList.remove('today')); // bỏ highlight cũ
-
-    const dayCells = document.querySelectorAll('.calendar-cell');
-    dayCells.forEach(el => {
+    // Reset highlight
+    document.querySelectorAll('.calendar-cell.today').forEach(el => el.classList.remove('today'));
+    document.querySelectorAll('.calendar-cell').forEach(el => {
         const dayId = el.id.replace('day-', '');
         const cellDate = new Date(dayId);
-        if (cellDate.toDateString() === now.toDateString()) {
+        if (!isNaN(cellDate) && cellDate.toDateString() === now.toDateString()) {
             el.classList.add('today');
         }
     });
 }
 
-// Cuộn đến ngày hôm nay khi bấm nút
-document.getElementById('today-btn').addEventListener('click', function() {
+// Nút "Hôm nay"
+document.getElementById('today-btn').addEventListener('click', () => {
     const todayElem = document.querySelector('.calendar-cell.today');
-    if(todayElem) {
+    if (todayElem) {
         todayElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        todayElem.style.boxShadow = '0 0 15px 3px rgba(0,122,255,0.7)';
-        setTimeout(()=>{ todayElem.style.boxShadow='0 3px 6px rgba(0,0,0,0.1)'; }, 1500);
+        todayElem.animate([
+            { boxShadow: '0 0 0 0 rgba(0,122,255,0.8)' },
+            { boxShadow: '0 0 20px 6px rgba(0,122,255,0.6)' },
+            { boxShadow: '0 0 0 0 rgba(0,122,255,0)' }
+        ], { duration: 1500 });
     }
 });
 
-// Cập nhật thời gian & ngày hôm nay mỗi giây
+// Cập nhật mỗi giây
 setInterval(updateTime, 1000);
 updateTime();

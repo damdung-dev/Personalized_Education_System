@@ -23,6 +23,10 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from .models import YouTubeSearch
+from yt_dlp import YoutubeDL
+from django.utils import timezone
+from datetime import date
 import numpy as np
 import calendar
 import json
@@ -169,23 +173,52 @@ def account_view(request):
     })
 
 def calendar_view(request):
-    today = datetime.today()
-    year = today.year
-    month = today.month
+    # Lấy params từ query
+    year_param = request.GET.get("year")
+    month_param = request.GET.get("month")
 
+    # Nếu có thì parse int, nếu rỗng hoặc None thì dùng hôm nay
+    try:
+        year = int(year_param) if year_param else date.today().year
+    except ValueError:
+        year = date.today().year
+
+    try:
+        month = int(month_param) if month_param else date.today().month
+    except ValueError:
+        month = date.today().month
+
+    # Xử lý tháng trước
+    prev_month = month - 1
+    prev_year = year
+    if prev_month < 1:
+        prev_month = 12
+        prev_year -= 1
+
+    # Xử lý tháng sau
+    next_month = month + 1
+    next_year = year
+    if next_month > 12:
+        next_month = 1
+        next_year += 1
+
+    # Lấy danh sách ngày trong tháng
     cal = calendar.Calendar(firstweekday=0)
-    month_days = [day for day in cal.itermonthdates(year, month)]
-
-    weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    month_days = list(cal.itermonthdates(year, month))
 
     context = {
-        'year': year,
-        'month': month,
-        'today': today,
-        'month_days': month_days,
-        'weekdays': weekdays,
+        "month": month,
+        "year": year,
+        "prev_month": prev_month,
+        "prev_year": prev_year,
+        "next_month": next_month,
+        "next_year": next_year,
+        "today": date.today(),
+        "weekdays": ["T2", "T3", "T4", "T5", "T6", "T7", "CN"],
+        "month_days": month_days,
     }
-    return render(request, 'home/calendar.html', context)
+    return render(request, "home/calendar.html", context)
+
 
 def courses_view(request):
     email = request.session.get('user_email')
@@ -326,19 +359,21 @@ def course_detail(request, code):
     # Lấy khóa học
     course_module = get_object_or_404(CourseModule, code=code)
 
-    # Lấy các bài học trong khóa học
-    lessons = ListLesson.objects.filter(course=course_module)
+    # Lấy các bài học trong khóa học, sắp xếp theo thứ tự bạn muốn
+    lessons = ListLesson.objects.filter(course=course_module).order_by("id")
 
     # Kiểm tra xem student đã đăng ký khóa học chưa
-    registered = RecommendCourse.objects.filter(student_id=student.student_id, code=course_module.code).exists()
+    registered = RecommendCourse.objects.filter(
+        student_id=student.student_id,
+        code=course_module.code
+    ).exists()
 
-    return render(request, 'home/course_detail.html', {
-        'course': course_module,
-        'lessons': lessons,
-        'registered': registered,
-        'student': student
+    return render(request, "home/course_detail.html", {
+        "course": course_module,
+        "lessons": lessons,
+        "registered": registered,
+        "student": student
     })
-
 
 def notification_view(request):
     return render(request, 'home/notification.html')
@@ -533,6 +568,46 @@ def log_action(request, lesson_id):
             return JsonResponse({"status": "error", "message": "Invalid action"}, status=400)
     return JsonResponse({"status": "error", "message": "POST request required"}, status=400)
 
+def youtube_search_view(request):
+    query = request.GET.get("q")
+    if not query:
+        return JsonResponse({"results": []})
+
+    # Cấu hình yt-dlp
+    ydl_opts = {
+        "quiet": True,
+        "skip_download": True,
+        "extract_flat": "in_playlist",  # chỉ lấy info video
+    }
+
+    results = []
+    with YoutubeDL(ydl_opts) as ydl:
+        try:
+            search_url = f"ytsearch10:{query}"  # lấy 10 video
+            info = ydl.extract_info(search_url, download=False)
+            for entry in info.get("entries", []):
+                video_data = {
+                    "title": entry.get("title"),
+                    "url": f"https://www.youtube.com/watch?v={entry.get('id')}",
+                    "duration": entry.get("duration"),
+                    "uploader": entry.get("uploader")
+                }
+                results.append(video_data)
+
+                # Lưu vào cơ sở dữ liệu
+                YouTubeSearch.objects.create(
+                    query=query,
+                    title=entry.get("title"),
+                    url=f"https://www.youtube.com/watch?v={entry.get('id')}",
+                    duration=entry.get("duration"),
+                    uploader=entry.get("uploader"),
+                    searched_at=timezone.now()
+                )
+
+        except Exception as e:
+            print("YT Search error:", e)
+
+    return JsonResponse({"results": results})
 
 
 

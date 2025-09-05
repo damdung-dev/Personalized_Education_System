@@ -174,6 +174,15 @@ button:hover { transform: scale(1.05); }
     <input type="text" id="searchInput" placeholder="🔍 Tìm kiếm bài học...">
   </div>
 
+  <!-- Search YouTube -->
+  <div class="search-bar" style="margin-top: 16px;">
+    <input type="text" id="youtubeSearchInput" placeholder="🔍 Tìm kiếm video YouTube...">
+    <button id="youtubeSearchBtn" class="bg-success-btn" style="margin-left: 10px;">Tìm kiếm</button>
+  </div>
+
+  <!-- YouTube results -->
+  <div class="row" id="youtubeResultsContainer" style="margin-top: 16px;"></div>
+
   <!-- Lessons -->
   <div class="row" id="lessonsContainer">
     {% for lesson in lessons %}
@@ -211,15 +220,47 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-const searchInput = document.getElementById('searchInput');
-const lessonList = document.getElementById('lessonList');
-const lessons = lessonList.getElementsByTagName('li');
+  // Tìm kiếm YouTube
+const ytInput = document.getElementById('youtubeSearchInput');
+const ytBtn = document.getElementById('youtubeSearchBtn');
+const ytContainer = document.getElementById('youtubeResultsContainer');
 
-searchInput.addEventListener('keyup', function() {
-  const filter = this.value.toLowerCase();
-  for (let i = 0; i < lessons.length; i++) {
-    const text = lessons[i].textContent.toLowerCase();
-    lessons[i].style.display = text.includes(filter) ? "" : "none";
+ytBtn.addEventListener('click', async () => {
+  const query = ytInput.value.trim();
+  if (!query) return alert("Vui lòng nhập từ khóa tìm kiếm.");
+
+  ytContainer.innerHTML = "<p>Đang tải kết quả...</p>";
+
+  try {
+    const response = await fetch("{% url 'home:youtube_search' %}?q=" + encodeURIComponent(query));
+    const data = await response.json();
+
+    if (data.results.length === 0) {
+      ytContainer.innerHTML = "<p class='text-muted'>Không tìm thấy video nào.</p>";
+      return;
+    }
+
+    ytContainer.innerHTML = '';
+    data.results.forEach(video => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.style.flexDirection = 'column';
+      card.style.marginBottom = '16px';
+
+      card.innerHTML = `
+        <div class="card-header"><h2>${video.title}</h2></div>
+        <div class="card-body">
+          <p><strong>Uploader:</strong> ${video.uploader || 'Chưa rõ'}</p>
+          <p><strong>Duration:</strong> ${video.duration ? video.duration + ' giây' : 'Chưa rõ'}</p>
+          <p><a href="${video.url}" target="_blank" class="bg-success-btn" style="padding: 6px 12px; border-radius: 20px;">Xem trên YouTube</a></p>
+        </div>
+      `;
+      ytContainer.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    ytContainer.innerHTML = "<p class='text-danger'>Có lỗi xảy ra khi tìm kiếm.</p>";
   }
 });
 </script>

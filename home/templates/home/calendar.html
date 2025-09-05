@@ -9,11 +9,12 @@
   --primary: #007aff;
   --secondary: #00cfff;
   --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
-  --bg-light: #fff;
-  --bg-dark: #1c1c1e;
+  --bg: #ffffff;
+  --light-gray: #f2f2f7;
+  --text: #222222;
   --radius: 16px;
   --transition: 0.25s ease;
-  --shadow: 0 6px 20px rgba(0,0,0,0.1);
+  --shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
 /* Container */
@@ -21,21 +22,17 @@
   max-width: 900px;
   margin: 20px auto;
   padding: 10px;
-  font-family: system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
 }
 
 /* Card */
 .card {
-  background: var(--bg-light);
+  background: var(--bg);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 20px;
-  transition: all var(--transition);
   overflow: hidden;
-}
-body.dark .card {
-  background: var(--bg-dark);
-  color: #eee;
 }
 
 /* Header */
@@ -45,6 +42,7 @@ body.dark .card {
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: 15px;
+  gap: 10px;
 }
 .calendar-header h2 {
   font-size: 1.5rem;
@@ -54,70 +52,84 @@ body.dark .card {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Today button */
 #today-btn {
-  padding: 6px 16px;
+  padding: 8px 18px;
   border: none;
   background: var(--gradient);
   color: #fff;
   border-radius: 20px;
   font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
 }
 #today-btn:hover {
+  opacity: 0.9;
   transform: translateY(-2px);
 }
+
+/* Navigation buttons */
 .nav-buttons {
   display: flex;
   gap: 8px;
 }
 .nav-buttons button {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  background: #f2f2f7;
+  background: var(--light-gray);
+  color: var(--text);
   font-size: 0.9rem;
+  font-weight: 600;
   transition: var(--transition);
 }
 .nav-buttons button:hover {
-  background: rgba(0,122,255,0.1);
+  background: rgba(0,122,255,0.12);
 }
 
 /* Grid */
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
+  gap: 6px;
 }
 
 .calendar-weekday {
   font-weight: 600;
   text-align: center;
   padding: 6px 0;
-  background: #f2f2f7;
+  background: var(--light-gray);
   border-radius: 8px;
   font-size: 0.9rem;
+  color: var(--text);
 }
-body.dark .calendar-weekday { background: #2c2c2e; }
 
+/* Day cell */
 .calendar-cell {
   width: 100%;
-  padding-top: 100%; /* trick để luôn vuông */
+  padding-top: 100%; /* để ô vuông */
   position: relative;
   background: #fafafa;
   border-radius: 8px;
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background var(--transition), transform var(--transition);
   font-size: 0.85rem;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
 }
 .calendar-cell:hover {
   background: rgba(0,122,255,0.08);
+  transform: translateY(-2px);
 }
 .calendar-cell .date-number {
   position: absolute;
   top: 6px;
   right: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
 }
 
 /* Today */
@@ -132,12 +144,12 @@ body.dark .calendar-weekday { background: #2c2c2e; }
 
 /* Other month */
 .calendar-cell.other-month {
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .calendar-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .calendar-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .calendar-header h2 { font-size: 1.2rem; }
   .calendar-weekday { font-size: 0.75rem; padding: 4px 0; }
   .calendar-cell { font-size: 0.7rem; }
@@ -166,12 +178,13 @@ body.dark .calendar-weekday { background: #2c2c2e; }
 
       {% for day in month_days %}
         <div class="calendar-cell 
-                    {% if day == today.date %}today{% endif %}
+                    {% if day == today %}today{% endif %}
                     {% if day.month != month %}other-month{% endif %}" 
-             id="day-{{ day }}">
+            id="day-{{ day }}">
           <span class="date-number">{{ day.day }}</span>
         </div>
       {% endfor %}
+
     </div>
   </div>
 </div>
@@ -179,24 +192,49 @@ body.dark .calendar-weekday { background: #2c2c2e; }
 
 {% block script %}
 <script>
-  // Cập nhật thời gian thực
-  function updateTime() {
-    const now = new Date();
-    document.getElementById("current-time").innerText =
-      now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  }
-  setInterval(updateTime, 1000);
-  updateTime();
+// Cập nhật thời gian thực
+function updateTime() {
+  const now = new Date();
+  document.getElementById("current-time").innerText =
+    now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+setInterval(updateTime, 1000);
+updateTime();
 
-  // Chuyển tháng
-  document.getElementById("prev-month").addEventListener("click", function() {
-    window.location.href = "?month={{ month|add:"-1" }}&year={{ year }}";
-  });
-  document.getElementById("next-month").addEventListener("click", function() {
-    window.location.href = "?month={{ month|add:"1" }}&year={{ year }}";
-  });
-  document.getElementById("today-btn").addEventListener("click", function() {
-    window.location.href = "?month={{ today.date.month }}&year={{ today.date.year }}";
-  });
+  // Lấy tháng/năm hiện tại từ template
+let currentMonth = {{ month }};
+let currentYear = {{ year }};
+
+// Chuyển tháng trước
+document.getElementById("prev-month").addEventListener("click", function () {
+  let newMonth = currentMonth - 1;
+  let newYear = currentYear;
+  if (newMonth < 1) {
+    newMonth = 12;
+    newYear -= 1;
+  }
+  window.location.href = `?month=${newMonth}&year=${newYear}`;
+});
+
+// Chuyển tháng sau
+document.getElementById("next-month").addEventListener("click", function () {
+  let newMonth = currentMonth + 1;
+  let newYear = currentYear;
+  if (newMonth > 12) {
+    newMonth = 1;
+    newYear += 1;
+  }
+  window.location.href = `?month=${newMonth}&year=${newYear}`;
+});
+
+// Quay lại hôm nay
+document.getElementById("today-btn").addEventListener("click", function () {
+  const today = new Date();
+  const month = today.getMonth() + 1; // JS getMonth() từ 0-11
+  const year = today.getFullYear();
+  window.location.href = `?month=${month}&year=${year}`;
+});
+
+
 </script>
 {% endblock %}

@@ -24,5 +24,6 @@ urlpatterns = [
     path('chat/api/', views.chat_api, name='chat_api'),
     path('lesson/<int:lesson_id>/', views.lesson_detail, name='lessons_page'),
     path("lesson/<int:lesson_id>/log-action/", views.log_action, name="log_action"),
+    path('youtube_search/', views.youtube_search_view, name='youtube_search'),
 ]
 #

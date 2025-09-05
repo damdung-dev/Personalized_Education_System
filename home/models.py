@@ -106,7 +106,7 @@ class ListLesson(models.Model):
     )
     lesson_name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    video_file = models.FileField(upload_to='lessons_videos/', blank=True, null=True)  # thêm dòng này
+    video_file = models.FileField(upload_to='lessons_videos/', blank=True, null=True)
 
     class Meta:
         db_table = 'list_lesson'
@@ -166,3 +166,17 @@ class UserActionBook(models.Model):
 
     def __str__(self):
         return f"{self.student_id} - {self.book.title} ({self.action})"
+    
+class YouTubeSearch(models.Model):
+    query = models.CharField(max_length=255)
+    title = models.CharField(max_length=512)
+    url = models.URLField()
+    duration = models.IntegerField(null=True)
+    uploader = models.CharField(max_length=255, null=True)
+    searched_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'youtube_search'
+
+    def __str__(self):
+        return f"{self.query} - {self.title} ({self.duration})"
